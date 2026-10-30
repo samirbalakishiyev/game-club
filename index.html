@@ -802,7 +802,7 @@ const $=s=>app.querySelector(s),$$=s=>[...app.querySelectorAll(s)];
 function home(){stopAll();document.documentElement.lang=S.lang==='ru'?'ru':'az';
  const p=prog();
  app.innerHTML=`<div class="stack">
- <div class="hero">${sheetReady()?`<button class="ib" id="tlock" style="position:absolute;top:4px;right:0;z-index:2" aria-label="${esc(t('tPanel'))}">🔒</button>`:''}<h1 style="padding-right:56px">${t('heroHTML')}</h1><div class="crayons" aria-hidden="true"><span style="background:var(--tomato)"></span><span style="background:var(--sun)"></span><span style="background:var(--grass)"></span><span style="background:var(--sky)"></span><span style="background:var(--grape)"></span></div><p class="muted">${esc(t('sub'))}</p></div>
+ <div class="hero"><h1>${t('heroHTML')}</h1><div class="crayons" aria-hidden="true"><span style="background:var(--tomato)"></span><span style="background:var(--sun)"></span><span style="background:var(--grass)"></span><span style="background:var(--sky)"></span><span style="background:var(--grape)"></span></div><p class="muted">${esc(t('sub'))}</p><p class="note">Created by <b><span id="sx">S</span>amir Balakişiyev</b></p></div>
  <div class="langs" role="group" aria-label="${esc(t('chooseLang'))}">
   <button class="lang ${S.lang!=='ru'?'on':''}" data-l="az">🇦🇿 Azərbaycanca<small>Azərbaycan bölməsi</small></button>
   <button class="lang ${S.lang==='ru'?'on':''}" data-l="ru">🇷🇺 Русский<small>Русский сектор</small></button></div>
@@ -815,7 +815,7 @@ function home(){stopAll();document.documentElement.lang=S.lang==='ru'?'ru':'az';
  </div>`;
  $$('[data-l]').forEach(b=>b.onclick=()=>{S.lang=b.dataset.l;LS.set('lang',S.lang);home()});
  const nm=$('#nm');if(nm)nm.oninput=()=>{S.name=nm.value.slice(0,24);LS.set('name',S.name)};const edu=$('#edu');if(edu)edu.onclick=register;
- $('#prek').onclick=openPreschool;if($('#fbk'))$('#fbk').onclick=()=>feedback();homeBind();if($('#tlock'))$('#tlock').onclick=teacher;
+ $('#prek').onclick=openPreschool;if($('#fbk'))$('#fbk').onclick=()=>feedback();homeBind();if($('#sx'))$('#sx').onclick=teacher;
  $$('[data-g]').forEach(b=>b.onclick=()=>{if(b.disabled)return;S.grade=+b.dataset.g;LS.set('grade',S.grade);S.unit='all';grade()});
 }
 
@@ -848,8 +848,8 @@ function register(err){stopAll();const u=ME()||{};let role=u.rol||'student';
   <div class="field"><label for="rt">${esc(t('phone'))}</label><input id="rt" class="inp" type="tel" inputmode="tel" autocomplete="tel" placeholder="050 123 45 67" required value="${esc(showTel(u.tel||''))}"></div></div>
   <p class="note">${esc(L('Valideyn öz nömrəsini də yaza bilər.','Можно указать номер родителя.'))}</p>
   <button class="go" type="submit">${esc(t('regBtn'))}</button><p class="note" id="rm" style="color:var(--tomato);font-weight:800">${esc(err||'')}</p></form>
- <button class="ib" id="rtg" type="button" style="align-self:center">🔒 ${esc(t('tPanel'))}</button></div>`;
- $('#rtg').onclick=teacher;
+ <p class="note" style="text-align:center">Created by <b><span id="sx">S</span>amir Balakişiyev</b></p></div>`;
+ $('#sx').onclick=teacher;
  $$('[data-l]').forEach(b=>b.onclick=()=>{S.lang=b.dataset.l;LS.set('lang',S.lang);register()});
  $$('[data-r]').forEach(b=>b.onclick=()=>{role=b.dataset.r;$$('[data-r]').forEach(x=>x.classList.toggle('on',x===b))});
  $('#rg').onsubmit=async e=>{e.preventDefault();const cl=v=>String(v||'').trim().replace(/\s+/g,' ');
