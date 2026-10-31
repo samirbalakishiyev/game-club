@@ -865,7 +865,7 @@ function register(err){stopAll();const u=ME()||{};let role=u.rol||'student';
   if(ad.length<2||soyad.length<2){m.textContent=t('regName');return}
   if(!(yas>=4&&yas<=99)){m.textContent=L('Yaşı rəqəmlə yazın (məs: 9).','Укажите возраст цифрами (напр.: 9).');return}
   if(!telOK(tel)){m.textContent=t('regTel');return}
-  if(tel===SAMIR_TEL&&!LS.get('tkey','')){m.innerHTML=esc(L('Bu, Samir müəllimin nömrəsidir. Öz nömrənizi yazın.','Это номер учителя Самира. Укажите свой номер.'))+`<br><button type="button" class="go blue" id="iamt" style="margin-top:10px">🔑 ${esc(L('Mən Samir müəlliməm — şifrə ilə gir','Я учитель Самир — войти с паролем'))}</button>`;$('#iamt').onclick=teacher;return}
+  if(tel===SAMIR_TEL&&!LS.get('tkey','')){m.textContent=L('Bu, Samir müəllimin nömrəsidir. Öz nömrənizi yazın.','Это номер учителя Самира. Укажите свой номер.');return}
   const btn=$('#rg button[type=submit]');btn.disabled=true;m.textContent='…';
   LS.set('user',{ad,soyad,rol:role,tel,yas,at:Date.now()});S.name=ad;LS.set('name',ad);
   try{const o=await ping(true);if(o&&o.blok)return blocked()}catch(err){}
