@@ -868,12 +868,17 @@ function register(err){stopAll();const u=ME()||{};let role=u.rol||'student';
   if(tel===SAMIR_TEL&&!LS.get('tkey','')){m.textContent=L('Bu, Samir müəllimin nömrəsidir. Öz nömrənizi yazın.','Это номер учителя Самира. Укажите свой номер.');return}
   const btn=$('#rg button[type=submit]');btn.disabled=true;m.textContent='…';
   LS.set('user',{ad,soyad,rol:role,tel,yas,at:Date.now()});S.name=ad;LS.set('name',ad);
-  try{const o=await ping(true);if(o&&o.blok)return blocked()}catch(err){}
+  try{const o=await ping(true);if(o&&o.gone)return;if(o&&o.blok)return blocked()}catch(err){}
   home();notePull()}}
 /* 🔔 hər girişdə: qeydiyyat + son giriş + blok yoxlaması */
 async function ping(){const u=ME();if(!u||!sheetReady())return null;
  const o=await api({a:'ping',tel:u.tel,ad:u.ad,soyad:u.soyad,rol:ROLAZ(u.rol),yas:u.yas||'',qeyd:u.at||'',sayt:'Game Club · '+String(S.lang||'az').toUpperCase()});
+ if(o&&o.gone){LS.set('user',null);LS.set('blok',0);LS.set('fbs',null);FBS=null;LS.set('gone',1);gone();return{ok:true,gone:true}}
  if(o&&o.ok){LS.set('blok',o.blok?1:0)}return o}
+function gone(){stopAll();
+ app.innerHTML=`<div class="stack" style="margin-top:40px"><div class="card end"><div class="stars">🚫</div><h2>${esc(L('Qeydiyyat mümkün deyil','Регистрация невозможна'))}</h2><p class="muted">${esc(L('Qeydiyyatdan keçmək üçün Samir müəllimlə əlaqə saxlayın.','Чтобы зарегистрироваться, свяжитесь с учителем Самиром.'))}</p>
+  <a class="go wa" href="${esc(waLink(SAMIR_TEL))}" target="_blank" rel="noopener">${WAI} ${SAMIR_SHOW}</a></div><button class="go alt" id="gback">← ${esc(L('Qeydiyyat səhifəsi','Страница регистрации'))}</button></div>`;
+ $('#gback').onclick=()=>{LS.set('gone',0);register()}}
 function blocked(){stopAll();const u=ME()||{};
  app.innerHTML=`<div class="stack" style="margin-top:40px"><div class="card end"><div class="stars">🔒</div><h2>${esc(t('blocked'))}</h2><p class="muted">${esc(t('blocked2'))}</p>
   <p class="muted">${esc(L('Davam etmək üçün Samir müəllimə yazın:','Чтобы продолжить, напишите учителю Самиру:'))}</p>
@@ -1085,7 +1090,7 @@ async function tPanel(key,tab,fresh){stopAll();TP.tab=tab;app.innerHTML=topBar(t
      <div class="note">${esc(t('tReg'))}: ${esc(fmtDate(r.qeyd))} · ${esc(t('tLast'))}: ${esc(fmtDate(r.son))}${r.sayt?' · '+esc(r.sayt):''}</div>
      ${TP.ren===String(r.tel)?`<div class="stack tren"><div class="row2"><input class="inp" id="ra-${esc(r.tel)}" value="${esc((r.nm||r.ad+' '+r.soyad).split(' ')[0])}" placeholder="${esc(t('fName'))}"><input class="inp" id="rs-${esc(r.tel)}" value="${esc((r.nm||r.ad+' '+r.soyad).split(' ').slice(1).join(' '))}" placeholder="${esc(t('lName'))}"></div><input class="inp" id="rt-${esc(r.tel)}" type="tel" value="${esc(r.tel2?showTel(r.tel2):'')}" placeholder="${esc(L('Düzgün nömrə (boş qoyun — dəyişmir)','Верный номер (пусто — без изменений)'))}">
       <div class="fbh"><button class="go blue rsv" data-tel="${esc(r.tel)}" style="min-height:42px;width:auto;padding:0 16px;font-size:16px">💾 ${esc(t('save'))}</button>${r.nm||r.tel2?`<button class="ib rrs" data-tel="${esc(r.tel)}">↩︎ ${esc(L('qaytar','вернуть'))}</button>`:''}<button class="ib rcx">✕</button></div></div>`:''}
-     <div class="ubtn"><button class="go ${r.blok?'':'alt'} ublk" data-tel="${esc(r.tel)}">${r.blok?'🔓 '+esc(t('tUnblock')):'🔒 '+esc(t('tBlock'))}</button><button class="go alt upay" data-tel="${esc(r.tel)}">💳 ${r.elaqe?'✓':esc(L('Ödədi','Оплатил'))}</button><button class="ib uren" data-tel="${esc(r.tel)}" aria-label="✏️">✏️</button>
+     <div class="ubtn"><button class="go ${r.blok?'':'alt'} ublk" data-tel="${esc(r.tel)}">${r.blok?'🔓 '+esc(t('tUnblock')):'🔒 '+esc(t('tBlock'))}</button><button class="go alt upay" data-tel="${esc(r.tel)}">💳 ${r.elaqe?'✓':esc(L('Ödədi','Оплатил'))}</button><button class="ib uren" data-tel="${esc(r.tel)}" aria-label="✏️">✏️</button><button class="ib udel" data-tel="${esc(r.tel)}" style="color:var(--tomato)">🗑 ${esc(L('Sil','Удалить'))}</button>
       <a class="ib uwa" data-tel="${esc(r.tel)}" data-auto="${wtx?1:''}" href="${esc(waLink(tl,wtx))}" target="_blank" rel="noopener">${WAI}${wtx?'📝':''}</a>${r.blok?`<button class="ib usent ${sent?'on':''}" data-tel="${esc(r.tel)}" title="${esc(L('mesaj göndərildi','сообщение отправлено'))}">${sent?'✅':'☐'}</button>`:''}</div></article>`}).join(''):`<div class="card muted">${esc(t('tNoUsers'))}</div>`}</div>`);
   const inp=$('#uq');inp.oninput=()=>{TP.q=inp.value;const p=inp.selectionStart;draw();const i2=$('#uq');i2.focus();try{i2.setSelectionRange(p,p)}catch(e){}};
   $$('[data-f]').forEach(b=>b.onclick=()=>{TP.f=b.dataset.f;draw()});
@@ -1097,6 +1102,8 @@ async function tPanel(key,tab,fresh){stopAll();TP.tab=tab;app.innerHTML=topBar(t
   $$('.upay').forEach(b=>b.onclick=async()=>{const r=R(b.dataset.tel);if(r.elaqe&&!confirmTwice(b))return;b.disabled=true;
    try{const res=await api({a:'elaqe',key,tel:r.tel,v:!r.elaqe});if(res&&res.ok){r.elaqe=res.t||'';toast(r.elaqe?'💳 ✓':'—')}else toast(t('fbFail'))}catch(e){toast(t('fbFail'))}draw()});
   $$('.uren').forEach(b=>b.onclick=()=>{TP.ren=TP.ren===b.dataset.tel?'':b.dataset.tel;draw()});
+  $$('.udel').forEach(b=>b.onclick=async()=>{if(!b.dataset.armed){b.dataset.armed=1;b.textContent='❗ '+L('Silinsin? Yenə bas','Удалить? Нажми ещё');return}b.disabled=true;
+   try{const res=await api({a:'udel',key,tel:b.dataset.tel});if(res&&res.ok){rows.splice(rows.findIndex(x=>String(x.tel)===b.dataset.tel),1);const m=LS.get('wasent',{});delete m[b.dataset.tel];LS.set('wasent',m);toast('🗑 '+L('Silindi','Удалено'))}else toast(t('fbFail'))}catch(e){toast(t('fbFail'))}draw()});
   $$('.rcx').forEach(b=>b.onclick=()=>{TP.ren='';draw()});
   const ren=async(tel,reset)=>{const r=R(tel),v=id=>((document.getElementById(id+'-'+tel)||{}).value||'').trim().replace(/\s+/g,' ');let nm='',t2='';
    if(!reset){nm=(v('ra')+' '+v('rs')).trim();t2=normTel(v('rt'));if(!v('ra')){toast(t('regName'));return}if(t2&&t2.length!==9){toast(t('regTel'));return}if(nm===(r.ad+' '+r.soyad).trim())nm='';if(t2===String(r.tel))t2=''}
@@ -2003,6 +2010,7 @@ document.addEventListener('keydown',e=>{const ov=document.getElementById('prekov
 /* ---------- boot ---------- */
 function boot(){if(!S.lang)S.lang='az';const u=ME();if(u&&u.ad)S.name=u.ad;
  if(!sheetReady()){home();return}
+ if(LS.get('gone',0)&&!LS.get('tkey',''))return gone();
  if(!u&&!LS.get('tkey',''))return register();
  if(u&&String(u.tel)===SAMIR_TEL&&!LS.get('tkey',''))return telFix();
  if(LS.get('blok',0))blocked();else{home();try{if(location.hash==='#preschool')openPreschool()}catch(e){}}
