@@ -820,7 +820,7 @@ function home(){stopAll();document.documentElement.lang=S.lang==='ru'?'ru':'az';
 }
 
 /* ---------- 🌐 Google Cədvəl (Kod.gs): qeydiyyat, son giriş, blok, rəylər, günün qeydi ---------- */
-const SHEET_URL='BURAYA-SKRIPT-LINKINI-YAZIN';
+const SHEET_URL='https://script.google.com/macros/s/AKfycby-ugfT6pBHiQXruN0G525bSqPLvig1mHZ08tSRg-W6gLAcytNP1YOBT2MPuheB1jkfgA/exec';
 const sheetReady=()=>/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(SHEET_URL);
 async function api(body,get){const url=get?SHEET_URL+'?'+new URLSearchParams(body)+'&_='+Date.now():SHEET_URL;
  const r=await fetch(url,get?{}:{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});return r.json()}
