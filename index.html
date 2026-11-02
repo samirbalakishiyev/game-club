@@ -1037,7 +1037,7 @@ const fmtDate=ms=>{if(!ms)return'—';try{return new Date(ms).toLocaleString(S.l
 const dOnly=ms=>{if(!ms)return'—';try{return new Date(ms).toLocaleDateString('az-AZ',{day:'2-digit',month:'2-digit',year:'numeric'})}catch(e){return''}};
 const AB_FROM=1793390400000,AB_DAYS=3,AB_AGE=25;
 function abTag(r){if(r.ab==='istisna')return`<span class="pill" style="background:var(--grass-soft)">✓ ${esc(L('istisna','исключение'))}</span>`;if(r.ab==='avto'&&r.blok)return`<span class="pill" style="background:var(--tomato-soft)">⏳ ${esc(L('avtoblok','автоблок'))}</span>`;
- if(r.blok||r.elaqe||!(+r.qeyd>=AB_FROM))return'';const old=isT(r.rol)||(+r.yas||0)>AB_AGE;if(!old)return'';const left=Math.ceil((+r.qeyd+AB_DAYS*864e5-Date.now())/864e5);return left>0?`<span class="pill">⏳ ${left} ${esc(L('gün','дн.'))}</span>`:''}
+ if(r.blok||r.elaqe||!(+r.qeyd>=AB_FROM))return'';const old=+r.qeyd>=1793637600000||isT(r.rol)||(+r.yas||0)>AB_AGE;if(!old)return'';const left=Math.ceil((+r.qeyd+AB_DAYS*864e5-Date.now())/864e5);return left>0?`<span class="pill">⏳ ${left} ${esc(L('gün','дн.'))}</span>`:''}
 const TP={f:'all',q:'',ren:'',fbf:'all'};
 const waTpl=()=>LS.get('watpl','');
 const waSent=tel=>LS.get('wasent',{})[tel]||0;
@@ -1100,7 +1100,7 @@ async function tPanel(key,tab,fresh){stopAll();TP.tab=tab;app.innerHTML=topBar(t
   $$('.ublk').forEach(b=>b.onclick=async()=>{const r=R(b.dataset.tel);b.disabled=true;
    try{const res=await api({a:'block',key,tel:r.tel,v:!r.blok});if(res&&res.ok){r.blok=!r.blok;if(!r.blok&&r.ab==='avto')r.ab='istisna';toast(r.blok?t('tBlockedT'):t('tUnblockedT'))}else toast(t('fbFail'))}catch(e){toast(t('fbFail'))}draw()});
   $$('.upay').forEach(b=>b.onclick=async()=>{const r=R(b.dataset.tel);if(r.elaqe&&!confirmTwice(b))return;b.disabled=true;
-   try{const res=await api({a:'elaqe',key,tel:r.tel,v:!r.elaqe});if(res&&res.ok){r.elaqe=res.t||'';toast(r.elaqe?'💳 ✓':'—')}else toast(t('fbFail'))}catch(e){toast(t('fbFail'))}draw()});
+   try{const res=await api({a:'elaqe',key,tel:r.tel,v:!r.elaqe});if(res&&res.ok){r.elaqe=res.t||'';if(res.unb){r.blok=false;r.ab=''}toast(r.elaqe?'💳 ✓':'—')}else toast(t('fbFail'))}catch(e){toast(t('fbFail'))}draw()});
   $$('.uren').forEach(b=>b.onclick=()=>{TP.ren=TP.ren===b.dataset.tel?'':b.dataset.tel;draw()});
   $$('.udel').forEach(b=>b.onclick=async()=>{if(!b.dataset.armed){b.dataset.armed=1;b.textContent='❗ '+L('Silinsin? Yenə bas','Удалить? Нажми ещё');return}b.disabled=true;
    try{const res=await api({a:'udel',key,tel:b.dataset.tel});if(res&&res.ok){rows.splice(rows.findIndex(x=>String(x.tel)===b.dataset.tel),1);const m=LS.get('wasent',{});delete m[b.dataset.tel];LS.set('wasent',m);toast('🗑 '+L('Silindi','Удалено'))}else toast(t('fbFail'))}catch(e){toast(t('fbFail'))}draw()});
