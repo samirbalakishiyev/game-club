@@ -882,8 +882,7 @@ function gone(){stopAll();
   <a class="go wa" href="${esc(waLink(SAMIR_TEL))}" target="_blank" rel="noopener">${WAI} ${SAMIR_SHOW}</a></div><button class="go alt" id="gback">← ${esc(L('Qeydiyyat səhifəsi','Страница регистрации'))}</button></div>`;
  $('#gback').onclick=()=>{LS.set('gone',0);register()}}
 function blocked(){stopAll();const u=ME()||{};
- app.innerHTML=`<div class="stack" style="margin-top:40px"><div class="card end"><div class="stars">🔒</div><h2>${esc(t('blocked'))}</h2><p class="muted">${esc(t('blocked2'))}</p>
-  <p class="muted">${esc(L('Davam etmək üçün Samir müəllimə yazın:','Чтобы продолжить, напишите учителю Самиру:'))}</p>
+ app.innerHTML=`<div class="stack" style="margin-top:40px"><div class="card end"><div class="stars">📢</div><h2>${esc(L('Hörmətli istifadəçi!','Уважаемый пользователь!'))}</h2><p style="font-weight:700">${L('1 illik abunə haqqı <b>10 AZN</b> təşkil edir.','Подписка на 1 год стоит <b>10 AZN</b>.')}</p><p>${esc(L('Hesabınızın aktivliyini qorumaq və xidmətdən fasiləsiz istifadə etmək üçün bizimlə əlaqə saxlamağınız xahiş olunur.','Чтобы сохранить активность аккаунта и пользоваться сервисом без перерыва, пожалуйста, свяжитесь с нами.'))}</p><p style="font-weight:800">${esc(L('Təşəkkür edirik!','Спасибо!'))}</p>
   <a class="go wa" href="${esc(waLink(SAMIR_TEL,L('Salam, Samir müəllim! Game Club-da hesabım bağlanıb. Ad: ','Здравствуйте, учитель Самир! Мой аккаунт в Game Club заблокирован. Имя: ')+(u.ad||'')+' '+(u.soyad||'')))}" target="_blank" rel="noopener">${WAI} ${SAMIR_SHOW}</a></div>
   <button class="go alt" id="rck">↻ ${esc(L('Yenidən yoxla','Проверить снова'))}</button></div>`;
  $('#rck').onclick=async()=>{try{const o=await ping();if(o&&o.ok&&!o.blok)return home()}catch(e){}toast(L('Hələ bağlıdır','Пока закрыто'))}}
