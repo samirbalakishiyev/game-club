@@ -1073,11 +1073,11 @@ async function tPanel(key,tab,fresh){stopAll();TP.tab=tab;app.innerHTML=topBar(t
   return draw()}
  /* 👥 istifadəçilər */
  const rows=(o.rows||[]).slice().reverse();
- const draw=()=>{const nT=rows.filter(r=>isT(r.rol)).length,nB=rows.filter(r=>r.blok).length,nA=rows.filter(r=>r.ab==='avto'&&r.blok).length,tpl=waTpl();
+ const draw=()=>{const nT=rows.filter(r=>isT(r.rol)).length,nB=rows.filter(r=>r.blok).length,nP=rows.filter(r=>r.elaqe).length,nN=rows.filter(r=>(+r.qeyd||0)>Date.now()-3*864e5).length,nA=rows.filter(r=>r.ab==='avto'&&r.blok).length,tpl=waTpl();
   const q=fold(TP.q),qd=TP.q.replace(/\D/g,'');
-  const f=rows.filter(r=>(TP.f==='all'||(TP.f==='blok'&&r.blok)||(TP.f==='avto'&&r.ab==='avto'&&r.blok)||(TP.f==='t'&&isT(r.rol))||(TP.f==='pay'&&r.elaqe))&&(!q||fold(r.ad+' '+r.soyad+' '+(r.nm||'')).includes(q)||(qd&&(String(r.tel).includes(qd)||String(r.tel2||'').includes(qd)))));
+  const f=rows.filter(r=>(TP.f==='all'||(TP.f==='blok'&&r.blok)||(TP.f==='t'&&isT(r.rol))||(TP.f==='s'&&!isT(r.rol))||(TP.f==='pay'&&r.elaqe)||(TP.f==='new'&&(+r.qeyd||0)>Date.now()-3*864e5))&&(!q||fold(r.ad+' '+r.soyad+' '+(r.nm||'')).includes(q)||(qd&&(String(r.tel).includes(qd)||String(r.tel2||'').includes(qd)))));
   frame(`<div class="toggles"><span class="pill">👥 ${rows.length}</span><span class="pill">🧑‍🏫 ${nT}</span><span class="pill">🎒 ${rows.length-nT}</span><span class="pill">🔒 ${nB}</span></div>
-   <div class="chips">${[['all',L('Hamısı','Все')],['blok','🔒 '+L('Bloklananlar','Заблок.')+' '+nB],['avto','⏳ '+L('Avtoblok','Автоблок')+' '+nA],['t','🧑‍🏫 '+nT],['pay','💳 '+L('Ödəyənlər','Оплатили')]].map(([k,n])=>`<button class="chip ${TP.f===k?'on':''}" data-f="${k}">${esc(n)}</button>`).join('')}</div>
+   <div class="chips">${[['all','👥 '+L('Hamısı','Все')+' '+rows.length],['t','🧑‍🏫 '+L('Müəllimlər','Учителя')+' '+nT],['s','🎒 '+L('Şagirdlər','Ученики')+' '+(rows.length-nT)],['blok','🔒 '+L('Bloklananlar','Заблок.')+' '+nB],['pay','💳 '+L('Ödəniş edənlər','Оплатили')+' '+nP],['new','🆕 '+L('Yeni qoşulanlar','Новые')+' '+nN]].map(([k,n])=>`<button class="chip ${TP.f===k?'on':''}" data-f="${k}">${esc(n)}</button>`).join('')}</div>
    <details class="card watpl" ${tpl?'':'open'}><summary><b>📝 ${esc(L('Bloklananlar üçün WhatsApp şablonu','Шаблон WhatsApp для заблокированных'))}</b> ${tpl?'✓':''}</summary>
     <p class="note">${esc(L('Bloklanmış şəxsin yanındakı WhatsApp düyməsini basanda bu mesaj hazır açılır. {ad} — şəxsin adı.','Сообщение откроется в WhatsApp у заблокированного. {ad} — имя.'))}</p>
     <textarea id="wtp" class="inp" style="min-height:90px" placeholder="Salam, {ad}! Game Club-da hesabınız bağlanıb…">${esc(tpl)}</textarea>
