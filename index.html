@@ -835,8 +835,10 @@ function home(){stopAll();document.documentElement.lang=S.lang==='ru'?'ru':'az';
 /* ---------- 🌐 Google Cədvəl (Kod.gs): qeydiyyat, son giriş, blok, rəylər, günün qeydi ---------- */
 const SHEET_URL='https://script.google.com/macros/s/AKfycby-ugfT6pBHiQXruN0G525bSqPLvig1mHZ08tSRg-W6gLAcytNP1YOBT2MPuheB1jkfgA/exec';
 const sheetReady=()=>/^https:\/\/script\.google\.com\/macros\/s\/[\w-]+\/exec$/.test(SHEET_URL);
-async function api(body,get){const url=get?SHEET_URL+'?'+new URLSearchParams(body)+'&_='+Date.now():SHEET_URL;
- const r=await fetch(url,get?{}:{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});return r.json()}
+async function api(body,get){
+ /* 🔁 oxuma sorğuları: cədvəl məşğul olanda (Google skripti eyni anda bir sorğu işləyir) 3 dəfəyə qədər yenidən cəhd */
+ if(get){let last;for(let i=0;i<3;i++){try{const r=await fetch(SHEET_URL+'?'+new URLSearchParams(body)+'&_='+Date.now());return await r.json()}catch(e){last=e;if(i<2)await new Promise(ok=>setTimeout(ok,i?4000:1500))}}throw last}
+ const r=await fetch(SHEET_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)});return r.json()}
 const L=(az,ru)=>S.lang==='ru'?ru:az;
 const SAMIR_TEL='557958625',SAMIR_SHOW='055 795 86 25',SITE_URL='https://samirbalakishiyev.github.io/game-club/',LINKS_URL='https://samirbalakishiyev.github.io/my-new-vocabulary/links/';
 const ROLAZ=r=>r==='teacher'?'Müəllim':'Şagird';
@@ -1059,7 +1061,7 @@ function waMark(tel,auto){const m=LS.get('wasent',{});if(auto)m[tel]=Date.now();
 async function tPanel(key,tab,fresh){stopAll();TP.tab=tab;app.innerHTML=topBar(t('tPanel'))+`<div class="card" style="text-align:center">…</div>`;bindBack(home);
  let o;if(tab==='note')o={note:NOTE};else{try{o=await api({a:tab==='users'?'users':'fbs',key},true)}catch(e){o={error:'net'}}}
  if(!o||o.error){if(o&&o.error==='key'){LS.set('tkey','');return teacher()}
-  app.innerHTML=topBar(t('tPanel'))+`<div class="stack"><div class="card"><b>${esc(t('fbFail'))}</b></div><button class="go alt" id="rt">${esc(t('back'))}</button></div>`;bindBack(home);$('#rt').onclick=()=>tPanel(key,tab);return}
+  app.innerHTML=topBar(t('tPanel'))+`<div class="stack"><div class="card"><b>${esc(o&&o.error==='net'?(navigator.onLine===false?L('İnternet yoxdur. Bağlantını yoxlayın.','Нет интернета. Проверьте подключение.'):L('Cədvəl hazırda məşğuldur (çox şagird eyni anda işləyir). Bir az sonra yenidən cəhd edin.','Таблица сейчас занята (много учеников одновременно). Попробуйте чуть позже.')):t('fbFail'))}</b></div><button class="go alt" id="rt">${esc(t('back'))}</button></div>`;bindBack(home);$('#rt').onclick=()=>tPanel(key,tab);return}
  const tabs=`<div class="chips" role="tablist">${[['users','👥 '+t('tUsers')],['fb','✍️ '+L('Rəylər','Отзывы')],['note','💡 '+L('Günün qeydi','Заметка дня')]].map(([k,n])=>`<button class="chip ${tab===k?'on':''}" data-tab="${k}">${esc(n)}</button>`).join('')}</div>`;
  const frame=body=>{app.innerHTML=topBar(t('tPanel'),null,`<button class="ib" id="lo">🚪 ${esc(t('tOut'))}</button>`)+`<div class="stack">${tabs}${body}</div>`;bindBack(home);
   $('#lo').onclick=()=>{LS.set('tkey','');toast(L('Bu cihazda paneldən çıxdınız','Вы вышли из панели'));home()};$$('[data-tab]').forEach(b=>b.onclick=()=>tPanel(key,b.dataset.tab))};
@@ -1116,7 +1118,7 @@ async function tPanel(key,tab,fresh){stopAll();TP.tab=tab;app.innerHTML=topBar(t
   $$('.ublk').forEach(b=>b.onclick=async()=>{const r=R(b.dataset.tel);b.disabled=true;
    try{const res=await api({a:'block',key,tel:r.tel,v:!r.blok});if(res&&res.ok){r.blok=!r.blok;if(!r.blok&&r.ab==='avto')r.ab='istisna';toast(r.blok?t('tBlockedT'):t('tUnblockedT'))}else toast(t('fbFail'))}catch(e){toast(t('fbFail'))}draw()});
   $$('.upay').forEach(b=>b.onclick=async()=>{const r=R(b.dataset.tel);if(r.elaqe&&!confirmTwice(b))return;b.disabled=true;
-   try{const res=await api({a:'elaqe',key,tel:r.tel,v:!r.elaqe});if(res&&res.ok){r.elaqe=res.t||'';if(res.unb){r.blok=false;r.ab=''}toast(r.elaqe?'💳 ✓':'—')}else toast(t('fbFail'))}catch(e){toast(t('fbFail'))}draw()});
+   try{const res=await api({a:'elaqe',key,tel:r.tel,v:!r.elaqe});if(res&&res.ok){r.elaqe=res.t||'';if(res.unb){r.blok=false;r.ab=''}else if(r.elaqe&&r.blok){/* 💳 ödəniş = blokdan çıxar (hər blok növü üçün) */try{const u2=await api({a:'block',key,tel:r.tel,v:false});if(u2&&u2.ok){r.blok=false;r.ab='';res.unb=true}}catch(e){}}toast(r.elaqe?(res.unb?'💳 ✓ · ✅ '+t('tUnblockedT'):'💳 ✓'):'—')}else toast(t('fbFail'))}catch(e){toast(t('fbFail'))}draw()});
   $$('.uren').forEach(b=>b.onclick=()=>{TP.ren=TP.ren===b.dataset.tel?'':b.dataset.tel;draw()});
   $$('.udel').forEach(b=>b.onclick=async()=>{if(!b.dataset.armed){b.dataset.armed=1;b.textContent='❗ '+L('Silinsin? Yenə bas','Удалить? Нажми ещё');return}b.disabled=true;
    try{const res=await api({a:'udel',key,tel:b.dataset.tel});if(res&&res.ok){rows.splice(rows.findIndex(x=>String(x.tel)===b.dataset.tel),1);const m=LS.get('wasent',{});delete m[b.dataset.tel];LS.set('wasent',m);toast('🗑 '+L('Silindi','Удалено'))}else toast(t('fbFail'))}catch(e){toast(t('fbFail'))}draw()});
