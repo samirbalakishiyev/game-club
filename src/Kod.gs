@@ -143,6 +143,10 @@ function tagSet(o, now) {
    💳 "Ödəniş edib" qeyd olunmayıbsa, 5 gündən sonra növbəti girişdə avtomatik bloklanır.
    Müəllim blokunu əl ilə açsa, həmin şəxs bir daha avtomatik bloklanmır ("Avtoblok" vərəqi: avto / istisna). */
 const AB_FROM = 1793390400000, AB_DAYS = 5, AB_AGE = 25, AB_PAY_FROM = 1;
+/* 💳 Ödəniş 1 il (365 gün) qüvvədədir. Müddət bitəndə şagird növbəti girişdə avtomatik yenidən bloklanır ("Avtoblok": müddət).
+   Müəllim yenidən 💳 basanda yeni 1 il başlayır və blok açılır. */
+const PAY_DAYS = 365;
+const payOn = (e, now) => { e = ms(e) || 0; return e >= AB_PAY_FROM && (now || Date.now()) - e < PAY_DAYS * 864e5; };
 /* ⏳ 02.11.2026 20:40-dan (Bakı) sonra qoşulan HAMI (şagird və müəllim) 5 gün pulsuz istifadə edir, sonra avtomatik bloklanır.
    Müəllim panelində 💳 "Ödədi" basılanda avtomatik blok açılır və bir daha bloklanmır. */
 const AB_ALL = 1793637600000;
@@ -158,6 +162,13 @@ function abMap() {
   s.getRange(2, 1, s.getLastRow() - 1, 2).getValues().forEach(r => { if (r[0] !== '') m[String(r[0]).replace(/^'/, '')] = String(r[1]); });
   return m;
 }
+function abGet(tel) { /* {st, at}: Avtoblok vərəqindəki status və tarix */
+  const s = SpreadsheetApp.getActive().getSheetByName('Avtoblok');
+  if (!s || s.getLastRow() < 2) return { st: '', at: 0 };
+  const v = s.getRange(2, 1, s.getLastRow() - 1, 3).getValues();
+  for (let i = 0; i < v.length; i++) if (String(v[i][0]).replace(/^'/, '') === String(tel)) return { st: String(v[i][1]), at: ms(v[i][2]) || 0 };
+  return { st: '', at: 0 };
+}
 function abSet(tel, st, now) {
   tel = String(tel || ''); if (!tel) return;
   const s = abSheet(), n = s.getLastRow();
@@ -169,7 +180,16 @@ function abSet(tel, st, now) {
 }
 function abCheck(s, r, val, o, now) {
   const tel = String(o.tel || ''), q = ms(val[4]);
-  if (!q || q < AB_FROM || isTrue(val[6]) || (ms(val[8]) || 0) >= AB_PAY_FROM) return false;
+  if (isTrue(val[6])) return false;
+  const pe = ms(val[8]) || 0;
+  if (pe >= AB_PAY_FROM) { /* 💳 ödəyib: 1 il ərzində blok yoxdur; il bitəndə yenidən bloklanır */
+    const exp = pe + PAY_DAYS * 864e5;
+    if (now < exp) return false;
+    const g = abGet(tel); if (g.st === 'istisna' && g.at >= exp) return false; /* müddət bitəndən sonra müəllim bloku əl ilə açıb */
+    s.getRange(r, 7).insertCheckboxes().setValue(true); abSet(tel, 'müddət', now);
+    return true;
+  }
+  if (!q || q < AB_FROM) return false;
   if (now - q < AB_DAYS * 864e5) return false;
   if (q < AB_ALL && !/müəllim/i.test(String(o.rol || val[3] || ''))) { const y = +(o.yas || ageMap()[tel] || 0); if (!(y > AB_AGE)) return false; }
   if (abMap()[tel] === 'istisna') return false;
@@ -266,7 +286,7 @@ function userSet(o, now) {
   s.getRange(r, 9).setValue(o.v ? new Date(now) : '').setNumberFormat(DF);
   /* 💳 ödəniş edildi → 5 günlük avtomatik blok açılır */
   let unb = false;
-  if (o.v && isTrue(s.getRange(r, 7).getValue()) && abMap()[String(o.tel)] === 'avto') { s.getRange(r, 7).insertCheckboxes().setValue(false); abSet(o.tel, 'ödəyib', now); unb = true; }
+  if (o.v) { if (isTrue(s.getRange(r, 7).getValue())) { s.getRange(r, 7).insertCheckboxes().setValue(false); unb = true; } abSet(o.tel, 'ödəyib', now); } /* 💳 hər növ blok açılır; yeni 1 il başlayır */
   return { ok: true, t: o.v ? now : '', unb };
 }
 
