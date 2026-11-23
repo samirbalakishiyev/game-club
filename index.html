@@ -879,8 +879,21 @@ function register(err){stopAll();const u=ME()||{};let role=u.rol||'student';
   try{const o=await ping(true);if(o&&o.gone)return;if(o&&o.blok)return blocked()}catch(err){}
   home();notePull()}}
 /* 🔔 hər girişdə: qeydiyyat + son giriş + blok yoxlaması */
+/* 📱 cihaz: hər brauzer üçün bir dəfə yaranan ID + cihazın adı (müəllim panelində neçə cihazda açıldığı görünsün) */
+const sbDev=()=>{let d='';try{d=localStorage.getItem('sb-devid')||''}catch(e){}if(!/^[a-z0-9]{8,24}$/.test(d)){d=(Date.now().toString(36)+Math.random().toString(36).slice(2,10)).slice(0,20);try{localStorage.setItem('sb-devid',d)}catch(e){}}return d};
+const sbDevName=()=>{const u=navigator.userAgent||'';let os='Kompüter';
+  if(/iPad/.test(u)||(/Macintosh/.test(u)&&navigator.maxTouchPoints>1))os='iPad';else if(/iPhone|iPod/.test(u))os='iPhone';
+  else if(/Android/.test(u)){const m=u.match(/Android[\d.\s]*;\s*([^;)]+)/),md=m?m[1].replace(/\s*Build.*$/,'').trim():'';os='Android'+(md&&!/^(K|wv|Linux|Mobile)$/i.test(md)?' '+md:'')}
+  else if(/Windows/.test(u))os='Windows';else if(/CrOS/.test(u))os='Chromebook';else if(/Macintosh/.test(u))os='Mac';else if(/Linux/.test(u))os='Linux';
+  const br=/EdgA?\/|EdgiOS/.test(u)?'Edge':/OPR\/|OPiOS/.test(u)?'Opera':/SamsungBrowser/.test(u)?'Samsung':/YaBrowser/.test(u)?'Yandex':/CriOS|Chrome\//.test(u)?'Chrome':/FxiOS|Firefox\//.test(u)?'Firefox':/Safari\//.test(u)?'Safari':'';
+  let sa=false;try{sa=window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){}
+  return (os+(br?' · '+br:'')+(sa?' · ana ekran':'')).slice(0,40)};
+const sbDT=t=>{if(!t)return '—';const d=new Date(+t||t);if(isNaN(d))return String(t);const z=x=>String(x).padStart(2,'0');return z(d.getDate())+'.'+z(d.getMonth()+1)+'.'+d.getFullYear()+' '+z(d.getHours())+':'+z(d.getMinutes())};
+const sbDevHTML=u=>{const n=+(u&&u.dv)||0;if(!n)return '';const e=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const L=(u.dvl||[]).map(x=>`<li>${e(x.n||'Naməlum cihaz')} — ilk: ${sbDT(x.f)}, son: ${sbDT(x.l)}</li>`).join('');
+  return ` · <details style="display:inline-block;vertical-align:top" onclick="event.stopPropagation()"><summary style="cursor:pointer;display:inline;font-weight:800;${n>=3?'color:#C62828':''}">📱 ${n} cihaz${n>=3?' ⚠️':''}</summary><ul style="margin:4px 0 2px 16px;padding:0;font-size:12.5px;line-height:1.45">${L}</ul></details>`};
 async function ping(){const u=ME();if(!u||!sheetReady())return null;
- const o=await api({a:'ping',tel:u.tel,ad:u.ad,soyad:u.soyad,rol:ROLAZ(u.rol),yas:u.yas||'',qeyd:u.at||'',sayt:'Game Club · '+String(S.lang||'az').toUpperCase()});
+ const o=await api({a:'ping',dev:sbDev(),dn:sbDevName(),tel:u.tel,ad:u.ad,soyad:u.soyad,rol:ROLAZ(u.rol),yas:u.yas||'',qeyd:u.at||'',sayt:'Game Club · '+String(S.lang||'az').toUpperCase()});
  if(o&&o.gone){LS.set('user',null);LS.set('blok',0);LS.set('fbs',null);FBS=null;LS.set('gone',1);gone();return{ok:true,gone:true}}
  if(o&&o.ok){LS.set('blok',o.blok?1:0);if('tg' in o)tagShow(o.tg)}return o}
 /* 🏷️ Müəllim etiketi: müəllim panelində CK basılıbsa, şagirdin tətbiqində yuxarıda yazı görünür */
@@ -1104,7 +1117,7 @@ async function tPanel(key,tab,fresh){stopAll();TP.tab=tab;app.innerHTML=topBar(t
     return`<article class="card ucard ${r.blok?'isblk':''}"><div class="fbh"><b>${isT(r.rol)?'🧑‍🏫':'🎒'} ${esc(r.nm||(r.ad+' '+r.soyad))}<button type="button" class="ckb${r.tg==='CK'?' on':''}" data-tel="${esc(r.tel)}" title="Ceyhun müəllimin şagirdi">CK</button>${r.yas?` <span class="pill">🎂 ${esc(r.yas)}</span>`:''}</b><span class="pill" style="background:${r.blok?'var(--tomato-soft)':'var(--grass-soft)'}">${r.blok?'🔒 '+esc(t('tBlocked')):'✓ '+esc(t('tActive'))}</span></div>
      ${r.nm?`<div class="note">${esc(L('Qeydiyyatda','При регистрации'))}: ${esc(r.ad+' '+r.soyad)}</div>`:''}
      <div class="fbh"><span class="tel">📞 ${esc(showTel(tl))}${r.tel2?` <s class="note">${esc(showTel(r.tel))}</s>`:''}</span><span>${abTag(r)}${r.elaqe?` <span class="pill" style="background:${payOn(r)?'var(--grass-soft)':'var(--tomato-soft)'}">💳 ${esc(dOnly(r.elaqe))} → ${esc(dOnly(+r.elaqe+365*864e5))}</span>`:''}</span></div>
-     <div class="note">${esc(t('tReg'))}: ${esc(fmtDate(r.qeyd))} · ${esc(t('tLast'))}: ${esc(fmtDate(r.son))}${r.sayt?' · '+esc(r.sayt):''}</div>
+     <div class="note">${esc(t('tReg'))}: ${esc(fmtDate(r.qeyd))} · ${esc(t('tLast'))}: ${sbDT(r.son)}${sbDevHTML(r)}${r.sayt?' · '+esc(r.sayt):''}</div>
      ${TP.ren===String(r.tel)?`<div class="stack tren"><div class="row2"><input class="inp" id="ra-${esc(r.tel)}" value="${esc((r.nm||r.ad+' '+r.soyad).split(' ')[0])}" placeholder="${esc(t('fName'))}"><input class="inp" id="rs-${esc(r.tel)}" value="${esc((r.nm||r.ad+' '+r.soyad).split(' ').slice(1).join(' '))}" placeholder="${esc(t('lName'))}"></div><input class="inp" id="rt-${esc(r.tel)}" type="tel" value="${esc(r.tel2?showTel(r.tel2):'')}" placeholder="${esc(L('Düzgün nömrə (boş qoyun — dəyişmir)','Верный номер (пусто — без изменений)'))}">
       <div class="fbh"><button class="go blue rsv" data-tel="${esc(r.tel)}" style="min-height:42px;width:auto;padding:0 16px;font-size:16px">💾 ${esc(t('save'))}</button>${r.nm||r.tel2?`<button class="ib rrs" data-tel="${esc(r.tel)}">↩︎ ${esc(L('qaytar','вернуть'))}</button>`:''}<button class="ib rcx">✕</button></div></div>`:''}
      <div class="ubtn"><button class="go ${r.blok?'':'alt'} ublk" data-tel="${esc(r.tel)}">${r.blok?'🔓 '+esc(t('tUnblock')):'🔒 '+esc(t('tBlock'))}</button><button class="go alt upay" data-tel="${esc(r.tel)}">💳 ${payOn(r)?'✓':esc(L('Ödədi','Оплатил'))}</button><button class="ib uren" data-tel="${esc(r.tel)}" aria-label="✏️">✏️</button><button class="ib udel" data-tel="${esc(r.tel)}" style="color:var(--tomato)">🗑 ${esc(L('Sil','Удалить'))}</button>
